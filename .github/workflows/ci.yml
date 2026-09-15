@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  verificar:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint (inclui as regras de acessibilidade em JSX)
+        run: npm run lint
+
+      - name: Verificação de tipos
+        run: npm run typecheck
+
+      - name: Formatação
+        run: npm run format:check
+
+      # Cobre as regras do axe-core nas telas e o contraste da paleta.
+      - name: Testes
+        run: npm run test
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Publicar o build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  cartas:
+    name: As ferramentas de carta continuam rodando
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      # As invariantes do DESENHO (textura fora do texto, anéis dentro da
+      # moldura, QR longe da marca de canto) são cobertas por tools/cards/design.test.ts,
+      # que compara SVG — texto puro e determinístico.
+      #
+      # Aqui só verificamos que o pipeline de renderização ainda roda de ponta a
+      # ponta. Comparar os PNGs byte a byte seria frágil: a renderização de fontes
+      # muda entre versões do Chromium.
+      - name: Gerar as cartas
+        run: npm run cards:generate
+
+      - name: Conferir as saídas
+        run: |
+          test -f public/cards/orbita-cartas.pdf
+          for id in sol mercurio venus terra lua marte jupiter saturno urano netuno; do
+            test -s "public/cards/$id.png" || { echo "faltou public/cards/$id.png"; exit 1; }
+          done
+          echo "10 cartas e o PDF foram gerados."
