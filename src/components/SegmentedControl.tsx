@@ -13,6 +13,8 @@ export interface SegmentedControlProps<T extends string> {
   options: SegmentedOption<T>[]
   legend: string
   description?: string
+  /** Espaçamento externo, definido por quem usa — o componente não o presume. */
+  className?: string
 }
 
 /**
@@ -25,20 +27,28 @@ export function SegmentedControl<T extends string>({
   options,
   legend,
   description,
+  className,
 }: SegmentedControlProps<T>) {
   const name = useId()
   const descriptionId = description ? `${name}-desc` : undefined
 
   return (
-    <fieldset className="py-3" aria-describedby={descriptionId}>
-      <legend className="font-medium text-fg">{legend}</legend>
+    <fieldset className={cn('py-4', className)} aria-describedby={descriptionId}>
+      {/*
+       * `float-left w-full` não é enfeite: por padrão o navegador posiciona a
+       * <legend> na BORDA do fieldset, fora da caixa de padding. O padding
+       * superior então não a afasta de nada, e numa lista com `divide-y` a linha
+       * divisória passa por cima do texto. Flutuando-a, ela volta ao fluxo normal
+       * e respeita o padding — daí o `clear-both` no que vem depois.
+       */}
+      <legend className="float-left w-full font-medium text-fg">{legend}</legend>
       {description ? (
-        <p id={descriptionId} className="mt-1 mb-3 text-sm text-fg-muted">
+        <p id={descriptionId} className="mt-1 mb-3 clear-both text-sm text-fg-muted">
           {description}
         </p>
       ) : null}
 
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-2 clear-both">
         {options.map((option) => {
           const id = `${name}-${option.value}`
           const selected = option.value === value

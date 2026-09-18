@@ -42,6 +42,7 @@ export function CatalogPage() {
       </header>
 
       <SegmentedControl
+        className="mt-4"
         legend="Filtrar por tipo"
         value={filter}
         onChange={setFilter}
