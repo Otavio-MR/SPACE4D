@@ -9,14 +9,21 @@ import { VitePWA } from 'vite-plugin-pwa'
 // `VITE_BASE_PATH` permite publicar em subcaminho (ex.: GitHub Pages usa "/SPACE4D/").
 const base = process.env.VITE_BASE_PATH ?? '/'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base,
   plugins: [
     react(),
     tailwindcss(),
-    // `npm run dev:https` — a câmera (getUserMedia) só funciona em contexto seguro,
-    // então testar no celular pela rede local exige HTTPS.
-    ...(process.env.HTTPS ? [basicSsl()] : []),
+    /*
+     * `npm run dev:https` — a câmera (getUserMedia) só funciona em contexto
+     * seguro, então testar no celular pela rede local exige HTTPS.
+     *
+     * O gatilho é o MODO do Vite, não uma variável de ambiente: `HTTPS=1 vite`
+     * é sintaxe de shell POSIX e falha no cmd.exe do Windows com "não é
+     * reconhecido como um comando interno ou externo". `--mode` é um argumento
+     * do próprio Vite e funciona igual nos três sistemas.
+     */
+    ...(mode === 'https' ? [basicSsl()] : []),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.svg', 'icons/*.png'],
@@ -59,4 +66,4 @@ export default defineConfig({
   },
   server: { host: true },
   build: { target: 'es2022' },
-})
+}))

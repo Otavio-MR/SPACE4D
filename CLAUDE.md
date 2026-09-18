@@ -17,9 +17,16 @@ lista é o índice do alvo dentro de `public/targets/orbita.mind`, e é assim qu
 da lista sem rodar `npm run cards` faz aparecer o planeta errado sobre a carta —
 sem nenhum erro no console. Há um teste que protege isso.
 
-**O QR impresso é imutável.** `CARDS_BASE_URL` é lido em tempo de geração. Gerar
-as cartas com o padrão (`http://localhost:5173`) e imprimi-las produz um baralho
-com QRs inúteis.
+**O QR impresso é imutável.** A URL base é lida em tempo de geração. Gerar as
+cartas com o padrão (`http://localhost:5173`) e imprimi-las produz um baralho com
+QRs inúteis.
+
+**Scripts de npm precisam rodar no cmd.exe.** Nada de `VAR=valor comando` num
+script do `package.json`: é sintaxe de shell POSIX, e no Windows o npm executa os
+scripts pelo `cmd.exe`, que responde "não é reconhecido como um comando interno
+ou externo". Passe a configuração por argumento de linha de comando — foi o que
+`dev:https` (`vite --mode https`) e `cards:generate` (`--base-url=`) precisaram
+fazer. `&&` entre comandos é seguro; o `cmd.exe` entende.
 
 **Recompile os alvos junto com as cartas.** `npm run cards` roda as duas etapas.
 Regerar só o PNG deixa o `.mind` descrevendo um desenho que não existe mais.

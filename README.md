@@ -59,12 +59,18 @@ conta; o IP da sua máquina na rede local, não. Por isso existe o `dev:https`:
 
 ```sh
 npm run dev:https
-# abra https://<ip-da-sua-máquina>:5173 no celular
 ```
+
+O Vite imprime dois endereços; use o **Network** (`https://192.168.x.x:5173`) no
+celular, com o aparelho na mesma rede Wi-Fi.
 
 O navegador vai avisar que o certificado é autoassinado — é esperado, aceite o
 aviso. O app detecta a ausência de contexto seguro e explica isso na tela, em vez
 de apenas falhar.
+
+Os scripts funcionam igual no Windows, macOS e Linux: o HTTPS é ligado por
+`vite --mode https`, e não por uma variável de ambiente embutida no comando
+(`HTTPS=1 vite` é sintaxe de shell POSIX e quebra no `cmd.exe`).
 
 ## As cartas
 
@@ -103,12 +109,15 @@ Estão codificadas em `tools/cards/design.ts` e verificadas em
 ### Regerando
 
 ```sh
-CARDS_BASE_URL=https://seu-dominio.exemplo npm run cards
+npm run cards -- --base-url=https://seu-dominio.exemplo
 ```
 
-`CARDS_BASE_URL` define o endereço que o QR de cada carta abre (padrão:
-`http://localhost:5173`). **Aponte-a para o endereço real antes de gerar as
+`--base-url` define o endereço que o QR de cada carta abre (padrão:
+`http://localhost:5173`). **Aponte-o para o endereço real antes de gerar as
 cartas definitivas** — o QR impresso não muda depois.
+
+O argumento funciona em qualquer shell. Em Linux e macOS a variável de ambiente
+`CARDS_BASE_URL` também serve; no Windows, prefira o argumento.
 
 `npm run cards` faz duas coisas em sequência:
 

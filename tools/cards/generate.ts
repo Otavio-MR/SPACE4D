@@ -7,8 +7,16 @@
  *
  * Uso: npm run cards:generate
  *
- * A URL do QR vem de CARDS_BASE_URL (padrão: http://localhost:5173). Aponte-a para
- * o endereço onde o app está publicado antes de gerar as cartas definitivas.
+ * A URL que o QR de cada carta abre vem, nesta ordem:
+ *   1. --base-url=https://exemplo.org   (recomendado: funciona em qualquer shell)
+ *   2. a variável de ambiente CARDS_BASE_URL
+ *   3. http://localhost:5173
+ *
+ * O argumento existe porque `CARDS_BASE_URL=... npm run cards` é sintaxe de shell
+ * POSIX e não funciona no cmd.exe do Windows.
+ *
+ * Aponte-a para o endereço real ANTES de gerar as cartas definitivas: o QR
+ * impresso não muda depois.
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -21,7 +29,22 @@ import { CARD_HEIGHT, CARD_WIDTH, buildQRModules, renderCardSVG } from './design
 
 const ROOT = resolve(import.meta.dirname, '../..')
 const OUT_DIR = resolve(ROOT, 'public/cards')
-const BASE_URL = process.env.CARDS_BASE_URL ?? 'http://localhost:5173'
+const BASE_URL = resolveBaseURL()
+
+function resolveBaseURL(): string {
+  const flag = process.argv.slice(2).find((argument) => argument.startsWith('--base-url='))
+  const value = flag?.slice('--base-url='.length) || process.env.CARDS_BASE_URL
+  if (!value) return 'http://localhost:5173'
+
+  // Uma URL malformada só apareceria depois de imprimir o baralho inteiro.
+  try {
+    return new URL(value).toString()
+  } catch {
+    throw new Error(
+      `--base-url inválida: ${JSON.stringify(value)} (esperado algo como https://exemplo.org)`,
+    )
+  }
+}
 
 /** Carta padrão, em milímetros: 9 cabem numa folha A4 com margem de 10 mm. */
 const CARD_MM = { width: 63.5, height: 88.9 }
